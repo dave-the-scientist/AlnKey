@@ -1,4 +1,4 @@
-#General considerations
+# General considerations
 - When compiling into a single file, accessory files are extracted to a temp location before running. This location changes each run, and the app doesn't know beforehand where. So to use accessory files you need to include in main.py:
   - import os, sys
   - from kivy.resources import resource_add_path, resource_find

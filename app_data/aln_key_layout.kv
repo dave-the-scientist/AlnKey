@@ -1,0 +1,881 @@
+#:kivy 2.1.0
+AlnKeyMain:
+
+
+# # #  Commonly used colours  # # #
+#:set white (1, 1, 1, 1)
+#:set black (0, 0, 0, 1)
+#:set dark_grey (60/255, 60/255, 60/255, 1)
+#:set screen_background (221/255, 231/255, 229/255, 1)
+#:set light_highlight (232/255, 237/255, 240/255, 1)
+#:set dark_highlight (72/255, 78/255, 81/255, 1)
+
+#:set old_screen_background (193/255, 208/255, 215/255, 1)
+
+# (48/255, 52/255, 54/255, 1)
+#: set old_dark_highlight (136/255, 138/255, 138/255, 1)
+
+
+# TODO:
+# Might want to label y axis of var graph
+# consider an input to control residue/resBar size
+
+
+# # #  Common elements  # # #
+<ScreenLayout@GridLayout>:
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: screen_background
+        Rectangle:
+            size: self.size
+            pos: self.pos
+<HeaderGroup@BoxLayout>:
+    header_text: ''
+    header_font_size: '45sp'
+    logo_height: 64
+    size_hint_y: None
+    height: self.logo_height + 20
+    spacing: 10
+    canvas.before:
+        Color:
+            rgba: dark_highlight
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Widget:
+    HeaderLogo:
+        pos_hint: {'center_x':0.5, 'center_y':0.5}
+        size_hint: None, None
+        size: root.logo_height*self.image_ratio, root.logo_height
+    Label:
+        pos_hint: {'center_y': 0.5}
+        size_hint: None, None
+        size: self.texture_size
+        bold: True
+        color: white
+        outline_color: black  # Font outline
+        outline_width: 1  # Font outline
+        font_size: root.header_font_size
+        text: root.header_text
+    Widget:
+<BackButtonGroup@RelativeLayout>:
+    size_hint_y: None
+    height: 50
+    Button:
+        pos_hint: {'top':1, 'x':0}
+        size_hint: None, None
+        width: 100
+        height: 40
+        font_size: '20sp'
+        text: "Back"
+        on_release:
+            app.root.transition.direction = 'right'
+            app.root.current = 'MainScreen'
+<MainButton@Button>:
+    pos_hint: {'center_x':0.5, 'top':1}
+    size_hint: None, None
+    width: 250
+    height: 55
+    font_size: '26sp'
+<MinorButton@Button>:
+    default_height: 40 # Custom property for dynamic heights
+    pos_hint: {'center_x':0.5, 'top':1}
+    size_hint: None, None
+    width: self.parent.width-self.parent.padding[0]-self.parent.padding[2]
+    height: self.default_height
+    font_size: '18sp'
+<BaseDropDown>:
+    spacing: 15
+    padding: 10
+    canvas.before:
+        Color:
+            rgba: light_highlight
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: dark_grey
+        Line:
+            width: 1.5
+            rectangle: self.x, self.y, self.width, self.height
+<DropdownButton@Button>:
+    size_hint_y: None
+    height: 40
+<ColumnGrid@GridLayout>:
+    cols: 1
+    size_hint_x: None
+    width: 200
+    padding: 10, 10, 10, 10
+    spacing: 10
+<ObjectGroupLayout>:
+    cols: 1
+    pos_hint: {'center_x':0.5}
+    size_hint_y: None
+    padding: 4, 4, 4, 4
+    spacing: 10
+    canvas.before:
+        Color:
+            rgba: dark_grey
+        Line:
+            width: 1
+            rectangle: self.x, self.y, self.width, self.height
+<OptionGroupLabel@Label>:
+    size_hint: None, None
+    size: self.texture_size
+    text_size: self.parent.width - 5, None
+    padding: 3, 3
+    valign: 'top'
+    color: black
+    markup: True
+    font_size: 18
+# #  Checkboxes and radio buttons  # #
+<CheckBoxRadioLayout@BoxLayout>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: 30*len(self.children) + self.spacing*(max(len(self.children)-1, 0)) + self.padding[1] + self.padding[3]
+    value: ''  # Accessible attribute
+<CheckBoxGroupBase@BoxLayout>:
+    label_text: ''
+    spacing: 0
+    size_hint_y: None
+    height: 30
+    Widget:
+<CheckBoxGroup@CheckBoxGroupBase>:
+    active: True  # Accessible attribute
+    content_width: lab.width + cb.width  # Set width to this to fit content
+    CheckBoxGroupLabel:
+        id: lab
+        text: root.label_text
+        on_press:
+            cb._do_press()
+    CheckBoxGroupCheckBox:
+        id: cb
+        on_active:
+            root.active = self.active
+<CheckBoxRadioGroup@CheckBoxGroupBase>:
+    value: ''
+    group: None
+    active: False
+    content_width: lab.width + cb.width  # Set width to this to fit content
+    CheckBoxGroupLabel:
+        id: lab
+        text: root.label_text
+        on_press:
+            cb._do_press()
+    CheckBoxGroupCheckBox:
+        id: cb
+        group: root.group
+        on_active:
+            root.parent.value = root.value
+        allow_no_selection: False
+<CheckBoxGroupLabel@ButtonBehavior+Label>:
+    pos_hint: {'center_y':0.5}
+    size_hint: None, None
+    halign: 'right'
+    size: self.texture_size
+    color: black
+    markup: True
+    font_size: 14
+<CheckBoxGroupCheckBox@CheckBox>:
+    pos_hint: {'center_y':0.5}
+    size_hint: None, None
+    color: dark_highlight
+    width: self.parent.height
+    height: self.parent.height
+    active: self.parent.active
+# #  Labeled text input  # #
+<LabInputLabel@Label>:
+    size_hint: None, None
+    halign: 'right'
+    size: self.texture_size
+    color: black
+    disabled_color: dark_grey[:3] + (0.8,)
+    markup: True
+    font_size: 14
+<ExpandingTextInput>:
+    size_hint_x: None
+    multiline: False
+    halign: 'center'
+    font_size: 12
+<LabelledInput>:
+    #text:  # Accessible dynamic attribute
+    text_input: li_input
+    label_text: ''
+    label_spacing: 5
+    input_width: 25
+    expanded_width: 50
+    expand_duration: 0.1
+    hint_text: ''
+    default_input_text: ''
+    input_format: None # 'int', 'float', 'upper', 'lower'
+    min_value: None
+    max_value: None
+    allow_empty: True
+    content_width: li_lab.width + self.label_spacing + self.input_width # Set width to this to fit content
+    size_hint_y: None
+    height: 30
+    LabInputLabel:
+        id: li_lab
+        pos_hint: {'right':1-(root.input_width+root.label_spacing)/root.width, 'center_y':0.5}
+        text: root.label_text
+    ExpandingTextInput:
+        id: li_input
+        pos_hint: {'right':1, 'center_y':0.5}
+        width: root.input_width
+        text: root.default_input_text
+        default_input_text: root.default_input_text
+        min_value: root.min_value
+        max_value: root.max_value
+        hint_text: root.hint_text
+<LabelledInputRange>:
+    #texts: [li_input1.text, li_input2.text] # Accessible dynamic attribute
+    #text1: li_input1.text # Accessible dynamic attribute
+    #text2: li_input2.text # Accessible dynamic attribute
+    text_input1: li_input1
+    text_input2: li_input2
+    label_text: ''
+    sep_label: 'to'
+    label_spacing: 5
+    sep_spacing: 3
+    input_width: 35
+    expanded_width: 70
+    expand_duration: 0.1
+    hint_text1: ''
+    hint_text2: ''
+    input1_default_text: ''
+    input2_default_text: ''
+    input_format: None # 'int', 'float', 'upper', 'lower'
+    input1_min_value: None
+    input1_max_value: None
+    input2_min_value: None
+    input2_max_value: None
+    allow_empty: True
+    content_width: li_lab.width + li_sep.width + self.label_spacing + 2*self.sep_spacing + 2*self.input_width # Set width to this to fit content
+    size_hint_y: None
+    height: 30
+    LabInputLabel:
+        id: li_lab
+        pos_hint: {'right':1-(2*root.input_width+2*root.sep_spacing+li_sep.width+root.label_spacing)/root.width, 'center_y':0.5}
+        text: root.label_text
+    LabInputLabel:
+        id: li_sep
+        pos_hint: {'right':1-(root.input_width+root.sep_spacing)/root.width, 'center_y':0.5}
+        right: root.content_width - root.input_width - root.sep_spacing
+        text: root.sep_label
+        halign: 'center'
+    ExpandingTextInput:
+        id: li_input1
+        pos_hint: {'right':1-(root.input_width+2*root.sep_spacing+li_sep.width)/root.width, 'center_y':0.5}
+        width: root.input_width
+        text: root.input1_default_text
+        default_input_text: root.input1_default_text
+        min_value: root.input1_min_value
+        max_value: root.input1_max_value
+        hint_text: root.hint_text1
+    ExpandingTextInput:
+        id: li_input2
+        pos_hint: {'right':1, 'center_y':0.5}
+        width: root.input_width
+        text: root.input2_default_text
+        default_input_text: root.input2_default_text
+        min_value: root.input2_min_value
+        max_value: root.input2_max_value
+        hint_text: root.hint_text2
+
+# # #  Common helper screens  # # #
+<LoadFilePopup>:
+    auto_dismiss: False
+    size_hint: 0.75, 0.75
+    filechooser: openfilechooser
+    selectedlabel: openfileselectedlabel
+    loadbutton: openfileloadbutton
+    BoxLayout:
+        orientation: 'vertical'
+        GridLayout:
+            rows: 1
+            size_hint: 1, 0.08
+            padding: 50, 15, 10, 10
+            spacing: 10
+            Button:
+                pos_hint: {'center_y':0.5}
+                size_hint: None, None
+                width: 35
+                height: 35
+                text: "Up"
+                on_release: root.up_level()
+            Label:
+                size_hint_x: None
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                text: 'Current path:'
+            TextInput:
+                pos_hint: {'center_y':0.5}
+                size_hint_y: None
+                height: 30
+                background_color: light_highlight
+                multiline: False
+                background_color: dark_grey
+                foreground_color: white
+                text: openfilechooser.path
+                on_text_validate: root.validate_user_path(self)
+        FileChooserListView:
+            id: openfilechooser
+            size_hint_y: 0.72
+            dirselect: False
+            filters: [lambda dir, fname: not (fname.endswith('.sys') or fname.endswith('.tmp'))]
+            on_selection: root.selection_made(self.selection)
+            on_submit: openfileloadbutton.trigger_action(0.05)
+        GridLayout:
+            rows: 1
+            size_hint_y: 0.08
+            spacing: 20
+            canvas.before:
+                Color:
+                    rgba: dark_grey
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                size_hint_x: None
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                text: 'Selected file:'
+            Label:
+                id: openfileselectedlabel
+                text_size: self.size
+                halign: 'left'
+                valign: 'middle'
+                bold: True
+                text: ''
+        RelativeLayout:
+            size_hint_y: 0.12
+            padding: 10
+            Button:
+                id: openfileloadbutton
+                pos_hint: {'x':0}
+                size_hint: None, None
+                width: 100
+                height: 40
+                disabled: True
+                text: "Load"
+                on_release:
+                    if openfilechooser.selection: root.dismiss(); root.callback(openfilechooser.path, openfilechooser.selection[0])
+            Button:
+                pos_hint: {'right':1.0}
+                size_hint: None, None
+                width: 100
+                height: 40
+                text: "Close"
+                on_release:
+                    root.dismiss()
+<SaveFilePopup>:
+    auto_dismiss: False
+    size_hint: 0.75, 0.75
+    filechooser: savefilechooser
+    savefilename: savefilenametext
+    BoxLayout:
+        orientation: 'vertical'
+        GridLayout:
+            rows: 1
+            size_hint: 1, 0.08
+            padding: 50, 15, 10, 10
+            spacing: 10
+            Button:
+                pos_hint: {'center_y':0.5}
+                size_hint: None, None
+                width: 35
+                height: 35
+                text: "Up"
+                on_release: root.up_level()
+            Label:
+                size_hint_x: None
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                text: 'Current path:'
+            TextInput:
+                pos_hint: {'center_y':0.5}
+                size_hint_y: None
+                height: 30
+                multiline: False
+                background_color: dark_grey
+                foreground_color: white
+                text: savefilechooser.path
+                on_text_validate: root.validate_user_path(self)
+        FileChooserListView:
+            id: savefilechooser
+            size_hint_y: 0.72
+            dirselect: False
+            filters: [lambda dir, fname: not (fname.endswith('.sys') or fname.endswith('.tmp'))]
+            on_selection: root.selection_made(self.selection)
+            on_submit: savefilesavebutton.trigger_action(0.05)
+        GridLayout:
+            rows: 1
+            size_hint_y: 0.08
+            spacing: 20
+            canvas.before:
+                Color:
+                    rgba: dark_grey
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                size_hint_x: None
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                text: 'File name:'
+            TextInput:
+                id: savefilenametext
+                padding: 20, (self.height-self.line_height)/2, 0, 0
+                background_color: light_highlight
+                multiline: False
+        RelativeLayout:
+            size_hint_y: 0.12
+            padding: 10
+            Button:
+                id: savefilesavebutton
+                pos_hint: {'x':0}
+                size_hint: None, None
+                width: 100
+                height: 40
+                text: "Save"
+                on_release:
+                    root.dismiss()
+                    root.callback(savefilechooser.path, savefilenametext.text)
+            Button:
+                pos_hint: {'right':1.0}
+                size_hint: None, None
+                width: 100
+                height: 40
+                text: "Close"
+                on_release:
+                    root.dismiss()
+
+<PermissionPopup>
+    auto_dismiss: False
+    size_hint: 0.6, 0.4
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        RelativeLayout:
+            id: messagelayout
+            size_hint_y: 0.8
+            Label:
+                text_size: messagelayout.width, None
+                size: self.texture_size
+                text: root.message_text
+        RelativeLayout:
+            size_hint_y: 0.2
+            Button:
+                pos_hint: {'x':0.0}
+                size_hint: None, None
+                width: 100
+                height: 40
+                text: "OK"
+                on_release:
+                    root.dismiss()
+                    root.ok_button_callback()
+            Button:
+                pos_hint: {'right':1.0}
+                size_hint: None, None
+                width: 100
+                height: 40
+                text: "Cancel"
+                on_release:
+                    root.dismiss()
+                    root.cancel_button_callback()
+
+
+# # #  Main screen  # # #
+<MainScreen>:
+    ScreenLayout:
+        HeaderGroup:
+            header_text: "The AlnKey"
+            header_font_size: '60sp'
+            logo_height: 120
+        BoxLayout:
+            size_hint_y: 0.92
+            padding: 0, 20, 0, 20
+            BoxLayout:
+                size_hint_x: 0.5
+                orientation: 'vertical'
+                spacing: 10
+                RelativeLayout:
+                    size_hint_y: None
+                    height: 55
+                    MainButton:
+                        text: "Load alignment"
+                        on_release:
+                            root.load_alignment_button()
+                ObjectGroupLayout:
+                    size_hint_x: None
+                    width: 250
+                    OptionGroupLabel:
+                        text: root.aln_status_text
+                    MinorButton:
+                        height: int(not root.aln_missing) * self.default_height
+                        opacity: int(not root.aln_missing)
+                        text: "Clean sequences"
+                        disabled: root.aln_missing
+                        on_release:
+                            app.root.alignment.clean()
+                            root.display_alignment_info()
+                    MinorButton:
+                        height: int(not root.aln_missing) * self.default_height
+                        opacity: int(not root.aln_missing)
+                        text: "Filter redundant"
+                        disabled: root.aln_missing
+                        on_release:
+                            root.manager.alignment.make_unique()
+                            root.display_alignment_info()
+                    MinorButton:
+                        height: int(not root.aln_missing) * self.default_height
+                        opacity: int(not root.aln_missing)
+                        text: "Sequence lengths" # Want to enable removing seqs with len < or > some number. So will open a popup. Would be really nice if that popup had a histogram of lengths
+                        disabled: root.aln_missing
+                        on_release:
+                            #function_call()
+                            root.display_alignment_info() # probably put this in function_call
+                    MinorButton:
+                        height: int(not root.aln_missing) * self.default_height
+                        opacity: int(not root.aln_missing)
+                        text: "Crop alignment"
+                        disabled: root.aln_missing
+                        on_release:
+                            #function_call()
+                            root.display_alignment_info() # probably put this in function_call
+                    MinorButton:
+                        height: int(not root.aln_missing) * self.default_height
+                        opacity: int(not root.aln_missing)
+                        text: "Export as"
+                        disabled: root.aln_missing
+                        on_release:
+                            root.export_dropdown.open(self)
+                RelativeLayout:
+                    MainButton:
+                        pos_hint: {'center_x':0.5, 'bottom':0}
+                        text: "Settings"
+                        on_release:
+                            app.root.transition.direction = 'left'
+                            app.root.current = 'OptionScreen'
+            BoxLayout:
+                size_hint_x: 0.5
+                Widget:
+                BoxLayout:
+                    size_hint: None, 1
+                    width: 250
+                    padding: 0, 0, 0, 100
+                    orientation: 'vertical'
+                    MinorButton:
+                        text: "View alignment"
+                        disabled: root.aln_missing
+                    Widget:
+                    MinorButton:
+                        text: "Graph variation"
+                        disabled: root.aln_missing
+                        on_release:
+                            app.root.transition.direction = 'left'
+                            app.root.current = 'VariationScreen'
+                    Widget:
+                    MinorButton:
+                        text: "Diversity diagram"
+                        disabled: root.aln_missing
+                    Widget:
+                    MinorButton:
+                        text: "Calculate identities" # interface for choosing which subsets to compare
+                        disabled: root.aln_missing
+                    Widget:
+                    MinorButton:
+                        text: "Map onto PDB"
+                        disabled: root.aln_missing
+                        on_release:
+                            app.root.transition.direction = 'left'
+                            app.root.current = 'PDBScreen'
+                Widget:
+        BoxLayout:
+            size_hint_y: 0.08
+            canvas.before:
+                Color:
+                    rgba: dark_highlight
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                color: white
+                text: "\u00A9 David Curran 2022"
+
+<AlnExportDropDown>:
+    DropdownButton:
+        text: "FASTA"
+        on_release:
+            root.dismiss()
+            root.screen.export_alignment_button('fasta')
+    DropdownButton:
+        text: "Clustal"
+        on_release:
+            root.dismiss()
+            root.screen.export_alignment_button('clustal')
+    DropdownButton:
+        text: "Phylip (interleaved)"
+        on_release:
+            root.dismiss()
+            root.screen.export_alignment_button('phylip interleaved')
+    DropdownButton:
+        text: "Phylip (strict)"
+        on_release:
+            root.dismiss()
+            root.screen.export_alignment_button('phylip strict')
+    DropdownButton:
+        text: "Phylip (sequential)"
+        on_release:
+            root.dismiss()
+            root.screen.export_alignment_button('phylip sequential')
+    DropdownButton:
+        text: "FASTA (gaps removed)"
+        on_release:
+            root.dismiss()
+            root.screen.export_alignment_button('fasta sequences')
+
+
+# # #  Variation screen  # # #
+<VariationScreen>:
+    # Properties / object references
+    draw_canvas_view: draw_canvas_view
+    draw_canvas: draw_canvas
+    show_sequence_cb: var_show_seq_cb.active
+    graph_type_radio: var_graph_type_radio.value
+    num_variants_input: var_display_variants
+    colour_by_radio: var_colour_radio.value
+    first_res_input: var_first_res
+    show_range_input: var_crop_range
+    show_meanline_cb: var_meanline_cb.active
+    show_numbers_cb: var_nums_cb.active
+    show_ticks_cb: var_ticks_cb.active
+    # Screen layout
+    ScreenLayout:
+        HeaderGroup:
+            header_text: "Alignment variation"
+        BoxLayout:
+            size_hint_y: 0.9
+            ColumnGrid:
+                BackButtonGroup:
+                ObjectGroupLayout:
+                    CheckBoxGroup:
+                        id: var_show_seq_cb
+                        label_text: 'Zoom to sequence:'
+                        active: False # TODO: False
+                    CheckBoxRadioLayout:
+                        id: var_graph_type_radio
+                        CheckBoxRadioGroup:
+                            label_text: 'Bar graph'
+                            value: 'bar'
+                            group: 'var_graph_type_group'
+                        CheckBoxRadioGroup:
+                            label_text: 'Line graph'
+                            value: 'line'
+                            group: 'var_graph_type_group'
+                        CheckBoxRadioGroup:
+                            label_text: 'Line with variants'
+                            value: 'line w variants'
+                            group: 'var_graph_type_group'
+                            active: True
+                    LabelledInput:
+                        id: var_display_variants
+                        label_text: 'Variants to display:'
+                        default_input_text: '5'
+                        input_format: 'int'
+                        min_value: 0
+                        allow_empty: False
+                        disabled: var_graph_type_radio.value != 'line w variants'
+                    CheckBoxRadioLayout:
+                        id: var_colour_radio
+                        CheckBoxRadioGroup:
+                            label_text: 'Colour conservation'
+                            value: 'conservation'
+                            group: 'var_colour_group'
+                            active: True
+                        CheckBoxRadioGroup:
+                            label_text: 'Colour properties'
+                            value: 'properties'
+                            group: 'var_colour_group'
+                        CheckBoxRadioGroup:
+                            label_text: 'No colour'
+                            value: 'none'
+                            group: 'var_colour_group'
+                    MinorButton:
+                        text: "Redraw"
+                        on_release:
+                            root.draw_graphics()
+                MinorButton:
+                    text: "Save image"
+                    on_release:
+                        root.save_image_button()
+            BoxLayout:
+                orientation: 'vertical'
+                StackLayout:
+                    size_hint_y: None
+                    height: 50
+                    padding: 10, 10, 0, 0
+                    spacing: 20
+                    LabelledInput:
+                        id: var_first_res
+                        label_text: 'First residue\nnumber:'
+                        default_input_text: '1'
+                        input_format: 'int'
+                        allow_empty: False
+                        size_hint_x: None
+                        width: self.content_width
+                    LabelledInputRange:
+                        id: var_crop_range
+                        label_text: 'Display\nrange:'
+                        input_format: 'int'
+                        hint_text1: 'Start'
+                        hint_text2: 'End'
+                        size_hint_x: None
+                        width: self.content_width
+                        input_width: 40
+                        expanded_width: 70
+                    CheckBoxGroup:
+                        id: var_meanline_cb
+                        size_hint_x: None
+                        width: self.content_width
+                        label_text: 'Show\nmean line:'
+                        active: True
+                    CheckBoxGroup:
+                        id: var_nums_cb
+                        size_hint_x: None
+                        width: self.content_width
+                        label_text: 'Show\nnumbers:'
+                        active: True
+                    CheckBoxGroup:
+                        id: var_ticks_cb
+                        size_hint_x: None
+                        width: self.content_width
+                        label_text: 'Show\nticks:'
+                        active: True
+                ScrollView:
+                    id: draw_canvas_view
+                    scroll_type: ['bars', 'content']
+                    effect_cls: "ScrollEffect"
+                    bar_margin: 2
+                    bar_width: 10
+                    BoxLayout:
+                        id: draw_canvas
+                        size_hint: None, None
+                        width: 800
+                        height: 620
+                        canvas.before:
+                            Color:
+                                rgba: screen_background # white
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                BoxLayout:
+                    size_hint_y: None
+                    height: 50
+                    canvas.before:
+                        Color:
+                            rgba: dark_grey
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    Label:
+                        color: white
+                        text: 'Bottom image options'
+
+# # #  PDB screen  # # #
+<PDBScreen>:
+    ScreenLayout:
+        HeaderGroup:
+            header_text: "Diversity mapped to PDB"
+        BoxLayout:
+            size_hint_y: 0.9
+            BoxLayout:
+                size_hint_x: None
+                width: 200
+                orientation: 'vertical'
+                BackButtonGroup:
+                RelativeLayout:
+                    Button:#MinorButton:
+                        width: 180
+                        text: "Load alignment"
+                RelativeLayout:
+                    Button:#MinorButton:
+                        width: 180
+                        text: "Load PDB"
+                RelativeLayout:
+                    Button:#MinorButton:
+                        width: 180
+                        text: "Some option"
+                RelativeLayout:
+                    Button:#MinorButton:
+                        width: 180
+                        text: "Some option"
+                RelativeLayout:
+                    Button:#MinorButton:
+                        width: 180
+                        text: "Some option"
+            BoxLayout:
+                orientation: 'vertical'
+                BoxLayout:
+                    size_hint_y: None
+                    height: 50
+                    canvas.before:
+                        Color:
+                            rgba: white
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    Label:
+                        color: dark_grey
+                        text: 'Top image options'
+                BoxLayout:
+                    canvas.before:
+                        Color:
+                            rgba: dark_grey
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                BoxLayout:
+                    size_hint_y: None
+                    height: 50
+                    canvas.before:
+                        Color:
+                            rgba: white
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    Label:
+                        color: dark_grey
+                        text: 'Bottom image options'
+
+
+# # #  Option screen  # # #
+<OptionScreen>:
+    ScreenLayout:
+        HeaderGroup:
+            header_text: "Settings"
+        BoxLayout:
+            size_hint_y: 0.9
+            orientation: 'vertical'
+            BackButtonGroup:
+            RelativeLayout:
+                Button:#MinorButton:
+                    width: 150
+                    text: "Option 1"
+            RelativeLayout:
+                Button:#MinorButton:
+                    width: 150
+                    text: "Option 2"
+            RelativeLayout:
+                Button:#MinorButton:
+                    width: 150
+                    text: "Option 3"
+            RelativeLayout:
+                Button:#MinorButton:
+                    width: 150
+                    text: "Option 4"

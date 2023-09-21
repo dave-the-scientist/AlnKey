@@ -1,0 +1,47 @@
+CLUSTAL W multiple sequence alignment
+
+
+Haemophilus_parainfluenzae           -QVVGGVSTDTKQTKYIIVKAGL-------KDGKAGIEVHDRNLPDYSPTTEKALSKTAN 52
+Haemophilus_haemolyticus             -QVVGNVSTDTNQTRYIKIKAGE-------KDGKAGVEIYDSSIPN----DPAVLSKTAN 48
+Stenotrophomonas_maltophilia_AU12-09 ADIVGAASPVTDAELYVAVGESQV-NGGPHQAGKAGIGV----------------GTVSN 43
+Vibrio                               ----GFDGAISDDSLR-QVGESEVWVPFIHSKGNAGIG-------------------KTG 36
+Acinetobacter_baumannii_LAC-4        ----GIDGISSNESNI-KIGAAA---NASHPGGVAAVSVQAAGAPY----NAFTGFSSLK 48
+Sm_2                                 ADIVGAASPVTDAELYVAVGESQV-NGGPHQAGKAGIGV----------------GTVSN 43
+Vib_2                                ----GFDGAISDDSLR-QVGESEVWVPFIHSKGNAGIG-------------------KTG 36
+                                         *  .  :.      :  .          * *.:                       
+
+Haemophilus_parainfluenzae           NKGQSMALMAERADKWISHITGVAKKDSNGVVVAKMQNMPKLTLIMPDHTGLGRLSFKQV 112
+Haemophilus_haemolyticus             NKGQSFEKMAERADKWISHLTGVAKKDKNGVIVAKMNKMPNLTLIMPDHRGLGRLSFKQV 108
+Stenotrophomonas_maltophilia_AU12-09 AKPVDFQGLS----------LYSGTTTVNGTAV-RTLAMP-ITGAPGSHAGMGHFNFVKV 91
+Vibrio                               GKRVDFEGLA----------GGIFDDERNG-----------VHTSGSKHFQDNFYSFVQV 75
+Acinetobacter_baumannii_LAC-4        GLAQAFAAQG----------TSNTNVTVGSKTF-NISHIP-VSAMPPSHSALGNFNFGQV 96
+Sm_2                                 AKPVDFQGLS----------LYSGTTTVNGTAV-RTLAMP-ITGAPGSHAGMGHFNFVKV 91
+Vib_2                                GKRVDFEGLA----------GGIFDDERNG-----------VHTSGSKHFQDNFYSFVQV 75
+                                          :   .                  ..           :     .*   .  .* :*
+
+Haemophilus_parainfluenzae           GNMDTYYGEWENVAGGNTEEKNVSVYYVGSNPTTKLP-SGDATYDVKGINQYNNFDKELM 171
+Haemophilus_haemolyticus             GNQDTYFGEWENVDAATSAAKNVSVYYAGSDPTKTLP-SGKATYTVEGINKYGNFNSRLM 167
+Stenotrophomonas_maltophilia_AU12-09 GSGDVWFGEWSK-DGAAGGFNNRQVYFVGDRTGTTLP-AGVATYSVAGLNKFNG--SNLL 147
+Vibrio                               ANQDVWFGEWYE-GKKDSEFNNRTVYYVGNDAGTTVPTSGKATYNITGINKFSG--ANKL 132
+Acinetobacter_baumannii_LAC-4        GTQEVYFGEWWK-AGDTPASASHTVYYAGDNTNTTVPTAGTATYTVAGING-SG--SNLL 152
+Sm_2                                 GSGDVWFGEWSK-DGAAGGFNNRQVYFVGDRTGTTLP-AGVATYSVAGLNKFNG--SNLL 147
+Vib_2                                ANQDVWFGEWYE-GKKDSEFNNRTVYYVGNDAGTTVPTSGKATYNITGINKFSG--ANKL 132
+                                     .. :.::*** :         .  **:.*. . ..:* :* *** : *:*  ..   . :
+
+Haemophilus_parainfluenzae           SGTFNVDFTNKTIKGNISKSDLNIAV----SSKIN-SDATFKGSAIA--NKKLK----GT 220
+Haemophilus_haemolyticus             KGTFDVDFERASISGYLSKPNLSLSI----ESKIDKTNATFEGIAKA--EGVI-----GK 216
+Stenotrophomonas_maltophilia_AU12-09 SGTFRANFGSGTLQGGLTGGGLSVNV----NASINSANASFAGSATA--NGTVA----GT 197
+Vibrio                               SGTFNADFGAKTLDGSINNSNLTVSV----DATINAATAAFNGTAQAVQNGTTT---NGA 185
+Acinetobacter_baumannii_LAC-4        SGTFTANYGAGTLEGTLTGTGTAVSSLSLDGVAFNPGTAAFAGLATA--NGTAGIDNSGV 210
+Sm_2                                 SGTFRANFGSGTLQGGLTGGGLSVNV----NASINSANASFAGSATA--NGTVA----GT 197
+Vib_2                                SGTFNADFGAKTLDGSINNSNLTVSV----DATINAATAAFNGTAQAVQNGTTT---NGA 185
+                                     .*** .::   ::.* :.  .  :         ::   *:* * * *  :        * 
+
+Haemophilus_parainfluenzae           SEGRFYGAKAEGLAGMATFASKPEYNTAFGGTKN 254
+Haemophilus_haemolyticus             SEGRFYGAKAEGLAGMATFASKPEYNTAFGGTKN 250
+Stenotrophomonas_maltophilia_AU12-09 TQGQFFGANAATLAGIATFAGNSQYDTAFGGSKN 231
+Vibrio                               SQGHFFGANAAGLAGIATFTNNSDLDTAFGGEKK 219
+Acinetobacter_baumannii_LAC-4        VQGQFFGANASALAGIAQF-DNVSYNTAFGGAKN 243
+Sm_2                                 TQGQFFGANAATLAGIATFAGNSQYDTAFGGSKN 231
+Vib_2                                SQGHFFGANAAGLAGIATFTNNSDLDTAFGGEKK 219
+                                      :*:*:**:*  ***:* * .: . :***** *:
