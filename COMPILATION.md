@@ -7,18 +7,11 @@
         resource_add_path(os.path.join(sys._MEIPASS))`
 - When working with data files, we need to include them into the compiled file. Since the script to do this is general and includes everything recursively, it makes it easier to have a `Code` and a `Build` folder in the top-most level. `Code` is the venv, and `Build` is where all of the compilation happens. Otherwise the inclusion code copies a second version of all python libraries (desired or not) into the exe.
 - The program icon was drawn in icon.svg, saved as icon.png, then converted to icon.ico using https://www.convertico.com/
+- There is currently some sort of bug in pyinstaller v5.7 and later (reported early 2023, still present in v5.13), that threw a "Maximum recursion exceeded" error when attempting to run the compiled application on Windows. Downgrading to v5.6.2 fixed the issue. Test in the future to see if it gets fixed.
 
 # To compile on Windows
-- Set up virtual environment `python -m venv Code`, cd in, `Scripts\activate.bat`.
-- Install dependencies `pip install kivy`, `pip install --upgrade pyinstaller`.
-- Transfer relevant files.
-  - Under Code: main.py, icon.ico.
-  - Create Code\app_data, transfer: aln_key_layout.kv.
-  - Create Code\app_scripts, transfer: align.py, BLOSUM.py, sequ.py
-  - Create Code\dev_files, transfer: icon.ico
-
-- Create `Build` folder under the root, and cd in.
-- Generate the spec file: `python -m PyInstaller --onefile --name AlnKey --windowed --icon C:\Users\curra\compilation\aln_key\Code\dev_files\icon.ico C:\Users\curra\compilation\aln_key\Code\main.py`
+- Create `Build` folder under the root, cd in, activate venv.
+- Generate the spec file: `python -m PyInstaller --onefile --name AlnKey --windowed --icon C:\Users\curra\compilation\aln_key\Code\app_data\icon.ico C:\Users\curra\compilation\aln_key\Code\main.py`
 - Modify the file `AlnKey.spec`:
   - At the top add `from kivy_deps import sdl2, glew`
   - Within the Analysis() block, add to the hiddenimports list:
