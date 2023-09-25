@@ -38,6 +38,7 @@ from kivy.graphics import Color, Rectangle, Line
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics.instructions import Callback
 
+
 # BUGS
 # draw_loading_graphic(self, dt=None) is messed up. It works great if you load a large aln. But only the first load. The graphic isn't drawn on subsequent loads. Unless you comment out the draw_graphics() call; somehow this makes it all work again. Right now it's using Clock.schedule_once, but I'd rather not. Once fixed, remove the 'dt=None' args from various functions.
 
