@@ -14,6 +14,7 @@ config_variation_colours_category = 'Variation screen colours'
 config_category_keys = [config_paths_category, config_class_colours_category, config_variation_colours_category]
 
 import time
+import threading
 
 import os, sys
 from app_scripts import sequ, align
@@ -689,9 +690,17 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         #self.show_ticks_cb = Bool
     def on_enter(self):
         if not self.variations:
+            print('entered')
             self.draw_canvas.canvas.clear()
             self.draw_loading_graphic()
-            Clock.schedule_once(self.load_variation_then_draw, 0) # Have to do this or the graphic doesn't display before the thread locks up
+            
+            t = threading.Thread(target=self.load_variation_then_draw)
+            # TODO add option to hide gaps. Gives better picture of the protein itself
+            #t.daemon = True
+            t.start()
+            print('check 1')
+            
+            #Clock.schedule_once(self.load_variation_then_draw, 0) # Have to do this or the graphic doesn't display before the thread locks up
     def alignment_loaded(self):
         self.variations = []
         self.consensus = ''
@@ -704,8 +713,10 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         print('loading', dt)
         self.variations = align.variation(self.manager.alignment) # long step
         self.variants = align.variants(self.manager.alignment) # brief but noticable pause
+        # Can I combine both of the above functions into a single pass through the alignment?
         print('done loading')
-        self.draw_graphics()
+        #self.draw_graphics()
+        Clock.schedule_once(self.draw_graphics, 0) # Clock calls are performed by the main thread, and only the main thread can draw.
     
     # #  I/O methods
     def save_image_button(self):
