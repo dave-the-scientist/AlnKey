@@ -743,17 +743,41 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         graph_type = self.graph_type_radio
         sequence_colours = self.colour_by_radio
         first_label_num = int(self.first_res_input.text)
-
-        # TODO: Allow selection of sequence to display
-        sequence = self.manager.alignment_consensus
-
-        variations = self.variations
-        variants = []
+        # Get dynamic options
         if graph_type == 'line w variants':
             graph_type = 'line'
             num_variants = int(self.num_variants_input.text)
-            variants = [vnt[:num_variants+1] for vnt in self.variants]
-        # Crop sequence & scores & variants
+        else:
+            num_variants = 0
+        
+
+        ignore_gaps = False #True # Should be set by UI element
+        # TODO: Allow selection of sequence to display
+        sequence_name = 'Consensus'
+        #sequence_name = 'L6-M982-M982_Nme'
+
+
+        if sequence_name == 'Consensus':
+            raw_sequence = self.manager.alignment_consensus
+        else:
+            raw_sequence = self.manager.alignment.get(sequence_name).sequence
+        # Format working data
+        max_variants = 0
+        sequence, variations, variants = [], [], []
+        for i in range(len(raw_sequence)):
+            if ignore_gaps and raw_sequence[i] == '-':
+                continue
+            sequence.append(raw_sequence[i])
+            variations.append(self.variations[i])
+            if num_variants:
+                vnts_norm = self.variants[i][0][1] # Normalized against most frequent character, not total
+                if sequence_name == 'Consensus':
+                    vnts = [(c, freq/vnts_norm) for c, freq in self.variants[i][1:num_variants+1]]
+                else:
+                    vnts = [(c, freq/vnts_norm) for c, freq in self.variants[i][:num_variants]]
+                max_variants = max(len(vnts), max_variants)
+                variants.append(vnts)
+        # Deal with data bounds
         seq_start, seq_end = self.show_range_input.texts
         final_res = first_label_num + len(sequence) - 1
         if not seq_start:
@@ -770,6 +794,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
             if seq_end > final_res or seq_end <= seq_start:
                 seq_end = final_res
                 self.show_range_input.text2 = str(seq_end)
+        # Crop sequence & scores & variants
         if seq_end - seq_start + 1 < len(sequence):
             crop_start = seq_start - first_label_num
             crop_end = len(sequence) - (final_res - seq_end)
@@ -778,9 +803,9 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
             variations = variations[crop_start:crop_end]
             variants = variants[crop_start:crop_end]
 
-        self.draw_sequence_variation(sequence, variations, variants=variants, show_sequence=self.show_sequence_cb, graph_type=graph_type, sequence_colours=sequence_colours, show_mean_line=self.show_meanline_cb, show_numbers=self.show_numbers_cb, show_ticks=self.show_ticks_cb, first_label_num=first_label_num)
+        self.draw_sequence_variation(sequence, variations, variants=variants, max_variants=max_variants, show_sequence=self.show_sequence_cb, graph_type=graph_type, sequence_colours=sequence_colours, show_mean_line=self.show_meanline_cb, show_numbers=self.show_numbers_cb, show_ticks=self.show_ticks_cb, first_label_num=first_label_num)
 
-    def draw_sequence_variation(self, sequence, variations, variants=[], show_sequence=True, graph_type='line', sequence_colours='properties', show_mean_line=True, show_numbers=True, show_ticks=True, first_label_num=1):
+    def draw_sequence_variation(self, sequence, variations, variants=[], max_variants=0, show_sequence=True, graph_type='line', sequence_colours='properties', show_mean_line=True, show_numbers=True, show_ticks=True, first_label_num=1):
         """Auto-adapts to the current screen size as resized by the user."""
         # #  Parameters
         x_padding, y_padding = 3, 3 # Space between graphics and edge
@@ -818,9 +843,8 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
             minor_tick_interval = major_tick_interval / 2
             res_per_segment = aln_len
             num_segs = 1
-        if variants:
-            max_vnt = max(len(col)-1 for col in variants)
-            graph_height = max_vnt * res_size[1]
+        if variants and max_variants > 0:
+            graph_height = max_variants * res_size[1]
         else:
             graph_height = 60
         if show_mean_line:
@@ -894,17 +918,14 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
                         # Graph variant residues
                         if variants:
                             vnt = variants[ind]
-                            vnt_norm = vnt[0][1] # Normalized against most frequent count
                             vnt_ind = 0
-                            for c_res, c_count in vnt:
-                                if c_res == residue:
-                                    continue
+                            for c_res, c_prop in vnt:
                                 c_res_y = graph_y + vnt_ind*res_size[1]
                                 if sequence_colours == 'properties':
                                     c_res_clr = self.get_residue_colour(c_res) or default_res_bkgrnd
                                 else:
                                     c_res_clr = default_res_bkgrnd
-                                res_op = max(c_count / vnt_norm, 0.05)
+                                res_op = max(c_prop, 0.05)
                                 c_res_clr = c_res_clr[:3] + (res_op,)
                                 if show_sequence:
                                     draw_label((res_x,c_res_y), c_res, size=res_size, font_colour=res_font_clr, box_colour=c_res_clr)
