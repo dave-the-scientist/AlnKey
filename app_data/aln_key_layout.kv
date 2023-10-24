@@ -85,6 +85,17 @@ AlnKeyMain:
     width: self.parent.width-self.parent.padding[0]-self.parent.padding[2]
     height: self.default_height
     font_size: '18sp'
+
+<MajorLabel@Label>:
+    size_hint: None, None
+    size: self.texture_size
+    color: black
+    font_size: 18
+<InfoLabel@MajorLabel>:
+    font_size: 16
+<MinorLabel@MajorLabel>:
+    font_size: 14
+
 <BaseDropDown>:
     spacing: 15
     padding: 10
@@ -120,15 +131,11 @@ AlnKeyMain:
         Line:
             width: 1
             rectangle: self.x, self.y, self.width, self.height
-<OptionGroupLabel@Label>:
-    size_hint: None, None
-    size: self.texture_size
+<OptionGroupLabel@MajorLabel>:
     text_size: self.parent.width - 5, None
     padding: 3, 3
     valign: 'top'
-    color: black
     markup: True
-    font_size: 18
 # #  Checkboxes and radio buttons  # #
 <CheckBoxRadioLayout@BoxLayout>:
     orientation: 'vertical'
@@ -169,14 +176,10 @@ AlnKeyMain:
         on_active:
             root.parent.value = root.value
         allow_no_selection: False
-<CheckBoxGroupLabel@ButtonBehavior+Label>:
+<CheckBoxGroupLabel@ButtonBehavior+MinorLabel>:
     pos_hint: {'center_y':0.5}
-    size_hint: None, None
     halign: 'right'
-    size: self.texture_size
-    color: black
     markup: True
-    font_size: 14
 <CheckBoxGroupCheckBox@CheckBox>:
     pos_hint: {'center_y':0.5}
     size_hint: None, None
@@ -185,14 +188,10 @@ AlnKeyMain:
     height: self.parent.height
     active: self.parent.active
 # #  Labeled text input  # #
-<LabInputLabel@Label>:
-    size_hint: None, None
+<LabInputLabel@MinorLabel>:
     halign: 'right'
-    size: self.texture_size
-    color: black
     disabled_color: dark_grey[:3] + (0.8,)
     markup: True
-    font_size: 14
 <ExpandingTextInput>:
     size_hint_x: None
     multiline: False
@@ -455,7 +454,7 @@ AlnKeyMain:
                 on_release:
                     root.dismiss()
 
-<PermissionPopup>
+<PermissionPopup>:
     auto_dismiss: False
     size_hint: 0.6, 0.4
     BoxLayout:
@@ -551,7 +550,7 @@ AlnKeyMain:
                     MinorButton:
                         height: int(not root.aln_missing) * self.default_height
                         opacity: int(not root.aln_missing)
-                        text: "Export as"
+                        text: "Save alignment as"
                         disabled: root.aln_missing
                         on_release:
                             root.export_dropdown.open(self)
@@ -605,15 +604,21 @@ AlnKeyMain:
                     size: self.size
                     pos: self.pos
             Label:
+                font_size: 14
                 color: white
-                text: "\u00A9 David Curran 2022"
-
+                text: "\u00A9 David Curran 2023"
+# #  End of MainScreen. Associated elements:  # #
 <AlnExportDropDown>:
     DropdownButton:
         text: "FASTA"
         on_release:
             root.dismiss()
             root.screen.export_alignment_button('fasta')
+    DropdownButton:
+        text: "FASTA (gaps removed)"
+        on_release:
+            root.dismiss()
+            root.screen.export_alignment_button('fasta sequences')
     DropdownButton:
         text: "Clustal"
         on_release:
@@ -634,11 +639,6 @@ AlnKeyMain:
         on_release:
             root.dismiss()
             root.screen.export_alignment_button('phylip sequential')
-    DropdownButton:
-        text: "FASTA (gaps removed)"
-        on_release:
-            root.dismiss()
-            root.screen.export_alignment_button('fasta sequences')
 
 
 # # #  Variation screen  # # #
@@ -661,13 +661,14 @@ AlnKeyMain:
             header_text: "Alignment variation"
         BoxLayout:
             size_hint_y: 0.9
+            # Left column of elements:
             ColumnGrid:
                 BackButtonGroup:
                 ObjectGroupLayout:
                     CheckBoxGroup:
                         id: var_show_seq_cb
                         label_text: 'Zoom to sequence:'
-                        active: False # TODO: False
+                        active: False
                     CheckBoxRadioLayout:
                         id: var_graph_type_radio
                         CheckBoxRadioGroup:
@@ -714,8 +715,10 @@ AlnKeyMain:
                     text: "Save image"
                     on_release:
                         root.save_image_button()
+            # Main column of elements:
             BoxLayout:
                 orientation: 'vertical'
+                # Top row of elements:
                 StackLayout:
                     size_hint_y: None
                     height: 50
@@ -757,6 +760,7 @@ AlnKeyMain:
                         width: self.content_width
                         label_text: 'Show\nticks:'
                         active: True
+                # Main content:
                 ScrollView:
                     id: draw_canvas_view
                     scroll_type: ['bars', 'content']
@@ -770,22 +774,20 @@ AlnKeyMain:
                         height: 620
                         canvas.before:
                             Color:
-                                rgba: screen_background # white
+                                rgba: white # screen_background
                             Rectangle:
                                 size: self.size
                                 pos: self.pos
-                BoxLayout:
+                # Bottom row of elements:
+                StackLayout:
                     size_hint_y: None
                     height: 50
-                    canvas.before:
-                        Color:
-                            rgba: dark_grey
-                        Rectangle:
-                            size: self.size
-                            pos: self.pos
-                    Label:
-                        color: white
-                        text: 'Bottom image options'
+                    padding: 10, 10, 0, 0
+                    spacing: 20
+                    InfoLabel:
+                        text: root.hover_text
+# #  End of VariationScreen. Associated elements:  # #
+# None so far
 
 # # #  PDB screen  # # #
 <PDBScreen>:

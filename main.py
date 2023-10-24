@@ -667,6 +667,7 @@ class MainScreen(BaseScreen, LoadFiles, SaveFiles):
 
 
 class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
+    hover_text = StringProperty('') # Label used to display mouseover information
     def __init__(self, *args, **kwargs):
         self.path_config_keys = ['variation_save_image']
         self.save_image_key = self.path_config_keys[0]
@@ -674,6 +675,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         self.screen_size = (1000, 800)
         self.variations = []
         self.variants = []
+        self.hover_elements = {}
         default_variation_colours = {'segment_background':'255,255,255,255', 'graph_line':'17,64,67,255', 'mean_line':'150,150,150,255', 'residue_variation':'10,239,255,255', 'residue_default':'182,182,182,255', 'residue_font':'50,50,50,255', 'axis_font':'50,50,50,255'}
         self.register_colour_dict(config_variation_colours_category, default_variation_colours)
         # #  Added in aln_key_layout.kv
@@ -688,6 +690,9 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         #self.show_meanline_cb = Bool
         #self.show_numbers_cb = Bool
         #self.show_ticks_cb = Bool
+
+        Window.bind(mouse_pos=self.canvas_mouseover) # TODO does this need to go into on_enter? or can multiple widgets be bound at once?
+
     def on_enter(self):
         if not self.variations:
             print('entered')
@@ -718,6 +723,24 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         #self.draw_graphics()
         Clock.schedule_once(self.draw_graphics, 0) # Clock calls are performed by the main thread, and only the main thread can draw.
     
+    def canvas_mouseover(self, window, pos):
+        if not self.hover_elements or self.manager.current_screen != self.manager.variation_screen:
+            return False
+        if self.draw_canvas_view.collide_point(*pos):
+            canv_x, canv_y = self.draw_canvas_view.to_local(*pos)
+            for rect, res_ind in self.hover_elements.items():
+                r_x, r_y = rect.pos
+                r_w, r_h = rect.size
+                r_x2, r_y2 = r_x+r_w, r_y+r_h
+                if canv_x < r_x or canv_x > r_x2 or canv_y < r_y or canv_y > r_y2:
+                    continue
+                else:
+                    self.hover_text = 'residue {}'.format(res_ind)
+                    break
+            else:
+                self.hover_text = ''
+                
+
     # #  I/O methods
     def save_image_button(self):
         title = 'Choose where to save an image of the alignment variation'
@@ -811,7 +834,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         x_padding, y_padding = 3, 3 # Space between graphics and edge
         segment_spacing = 10 # Vertical space between each segment
         segment_x_padding, segment_y_padding = 2, 2 # Space between segment edge and res/graph
-        graph_buffer = 3 # Space between residues and graph
+        graph_buffer = 5 # Space between residues and graph
         dash_len_space = (10, 10) # Dash line length, space between dashes
         inds_tick = 5
         inds_buffer = 1 # Space between residues and indices
@@ -866,6 +889,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
 
         # #  Do drawing
         self.draw_canvas.canvas.clear()
+        self.hover_elements = {}
         self.draw_canvas.width = new_canv_w
         self.draw_canvas.height = new_canv_h
         draw_methods = self.draw_methods_factory()
@@ -903,9 +927,11 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
                     else:
                         res_clr = None
                     if show_sequence:
-                        draw_label((res_x,res_y), residue, size=res_size, font_colour=res_font_clr, box_colour=res_clr)
+                        rect = draw_label((res_x,res_y), residue, size=res_size, font_colour=res_font_clr, box_colour=res_clr)
+                        self.hover_elements[rect] = '{}{}'.format(residue, ind+1)
                     elif res_clr:
-                        draw_rect((res_x,res_y), res_size, res_clr)
+                        rect = draw_rect((res_x,res_y), res_size, res_clr)
+                        self.hover_elements[rect] = '{}{}'.format(residue, ind+1)
                     # Deal with graphs
                     graph_h = var_prop * graph_height
                     if graph_type == 'bar':
