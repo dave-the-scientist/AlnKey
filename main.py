@@ -45,6 +45,7 @@ from kivy.graphics.instructions import Callback
 
 # Implement a thread pool for the App. Will probably fix the above bug.
 
+# Give the variation graph a y-axis title, possibly x-axis as well
 # Consider sliding window for calculation of variation. Or perhaps calculation of the mean line. Check a couple real gappy alignments. 
 # Implement ability to select one sequence to display instead of consensus. Searchable + scrollable popup list. The View screen will likely use a version that can incorporate checkboxes. 
 #  - When displaying sequence on Variation, ignore gaps? Option to? 
@@ -372,8 +373,8 @@ class DrawGraphics:
     # #  Common methods
     def get_residue_colour(self, residue):
         """Returns a tuple of floats (int / 255), or None if the residue is not found."""
-        cls = self.residue_classes.get(residue, None)
-        return self.class_colours.get(cls, None)
+        residue_class = self.residue_classes.get(residue, None)
+        return self.class_colours.get(residue_class, None)
     def register_colour_dict(self, config_key, default_colours):
         """Colours in the default dict should be of the form {'key':'r,g,b,a', ...} where r/g/b/a are values from 0-255. Loads the colours from the config file under the given key, only resorting to the default if the key is not found or is malformed."""
         cols = self.load_config_colour_dict(config_key, default_colours)
@@ -425,31 +426,35 @@ class DrawGraphics:
                 return Line(points=points, width=width, cap='none')
         def draw_curve(rel_points, width=1.1, colour=None, continue_from=False, continue_to=False):
             """Generates 2 new points between each point in rel_points to make a smoother curve. If continue_from / continue_to are given as points, they won't be drawn but the curve at the start / end will bend towards them."""
+            def midpoints(prev_pnt, cur_pnt, cont_pnt=0):
+                """Generates 2 points between prev_pnt and cur_pnt. These points make an approximation of a curve because dx and dy are applied in different proportions. cont_pnt is used to indicate if midpoint 1 or 2 is towards a continuation point."""
+                d_x, d_y = cur_pnt[0] - prev_pnt[0], cur_pnt[1] - prev_pnt[1]
+                if cont_pnt == 1:
+                    mid1 = (prev_pnt[0] + d_x/4, prev_pnt[1] + d_y/2)
+                else:
+                    mid1 = (prev_pnt[0] + d_x/4, prev_pnt[1] + d_y/6)
+                if cont_pnt == 2:
+                    mid2 = (prev_pnt[0] + d_x*3/4, prev_pnt[1] + d_y/2)
+                else:
+                    mid2 = (prev_pnt[0] + d_x*3/4, prev_pnt[1] + d_y*5/6)
+                return mid1, mid2
             points = [(rel_points[0][0]+pos_x, rel_points[0][1]+pos_y)]
             prev_pnt = points[0]
-            for x,y in rel_points[1:]:
+            for x, y in rel_points[1:]:
                 cur_pnt = (x+pos_x, y+pos_y)
-                d_x, d_y = cur_pnt[0] - prev_pnt[0], cur_pnt[1] - prev_pnt[1]
-                mid1 = (prev_pnt[0] + d_x/4, prev_pnt[1] + d_y/6)
-                mid2 = (prev_pnt[0] + d_x*3/4, prev_pnt[1] + d_y*5/6)
+                mid1, mid2 = midpoints(prev_pnt, cur_pnt)
                 points.append(mid1)
                 points.append(mid2)
                 points.append(cur_pnt)
                 prev_pnt = cur_pnt
             if continue_from:
-                cont = continue_from[0]+pos_x, continue_from[1]+pos_y
-                d_x, d_y = points[0][0]-cont[0], points[0][1]-cont[1]
-                mid0 = (cont[0] + d_x/2, cont[1] + d_y/2)
-                mid2 = (cont[0] + d_x*3/4, cont[1] + d_y*5/6)
-                points.insert(0, mid0)
+                mid1, mid2 = midpoints((continue_from[0]+pos_x, continue_from[1]+pos_y), points[0], cont_pnt=1)
+                points.insert(0, mid1)
                 points.insert(1, mid2)
             if continue_to:
-                cont = continue_to[0]+pos_x, continue_to[1]+pos_y
-                d_x, d_y = cont[0]-points[-1][0], cont[1]-points[-1][1]
-                mid1 = (points[-1][0] + d_x/4, points[-1][1] + d_y/6)
-                mid3 = (points[-1][0] + d_x/2, points[-1][1] + d_y/2)
+                mid1, mid2 = midpoints(points[-1], (continue_to[0]+pos_x, continue_to[1]+pos_y), cont_pnt=2)
                 points.append(mid1)
-                points.append(mid3)
+                points.append(mid2)
             if colour:
                 Color(rgba=colour)
             return Line(points=points, width=width, cap='round', joint='bevel')
@@ -713,6 +718,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         self.first_res_input.reset()
         self.show_range_input.reset()
         self.draw_canvas.canvas.clear()
+        self.clear_hover_messages()
         
     def load_variation_then_draw(self, dt=None):
         print('loading', dt)
@@ -723,23 +729,44 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         #self.draw_graphics()
         Clock.schedule_once(self.draw_graphics, 0) # Clock calls are performed by the main thread, and only the main thread can draw.
     
+    # #  Mouseover methods
     def canvas_mouseover(self, window, pos):
         if not self.hover_elements or self.manager.current_screen != self.manager.variation_screen:
             return False
         if self.draw_canvas_view.collide_point(*pos):
             canv_x, canv_y = self.draw_canvas_view.to_local(*pos)
-            for rect, res_ind in self.hover_elements.items():
-                r_x, r_y = rect.pos
-                r_w, r_h = rect.size
-                r_x2, r_y2 = r_x+r_w, r_y+r_h
-                if canv_x < r_x or canv_x > r_x2 or canv_y < r_y or canv_y > r_y2:
-                    continue
-                else:
-                    self.hover_text = 'residue {}'.format(res_ind)
-                    break
+            self.hover_text = self.get_hover_message(canv_x, canv_y)
+    def clear_hover_messages(self):
+        self.hover_elements = {}
+    def add_hover_message(self, x1, x2, y1, y2, message):
+        self.hover_elements.setdefault((y1, y2), []).append((x1, x2, message))
+    def process_hover_messages(self):
+        """Converts the dict into a sorted list for quick lookups."""
+        msgs = []
+        for y1, y2 in sorted(self.hover_elements):
+            row_msgs = [(y1, y2)]
+            for x1, x2, msg in sorted(self.hover_elements[(y1,y2)]):
+                row_msgs.append((x1, x2, msg))
+            msgs.append(row_msgs)
+        self.hover_elements = msgs
+    def get_hover_message(self, canv_x, canv_y):
+        """canv_x and canv_y are the x,y coordinates of the mouse in terms relative to the canvas."""
+        #self.hover_elements = [[(y1, y2), (x1, x2, msg), ...], [(y1,y2),...]]
+        for row_msgs in self.hover_elements:
+            y1, y2 = row_msgs[0]
+            if canv_y < y1:
+                return ''
+            elif canv_y > y2:
+                continue
             else:
-                self.hover_text = ''
-                
+                for x1, x2, msg in row_msgs[1:]:
+                    if canv_x < x1:
+                        return ''
+                    elif canv_x > x2:
+                        continue
+                    else:
+                        return msg
+        return ''
 
     # #  I/O methods
     def save_image_button(self):
@@ -747,6 +774,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         self.get_save_filepath(title, 'alignment_variation.png', '.png', self.save_image_key, self.save_image)
     def save_image(self, dirpath, filename):
         self.draw_canvas.export_to_png(os.path.join(dirpath, filename))
+
     # #  Graphical methods
     def draw_loading_graphic(self, dt=None):
         print('drawing')
@@ -785,21 +813,31 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         else:
             raw_sequence = self.manager.alignment.get(sequence_name).sequence
         # Format working data
-        max_variants = 0
+        seq_ind, num_seqs, max_variants = first_label_num, len(self.manager.alignment), 0
+        # sequence = [(residue, seq_ind, percent of column), ...]
         sequence, variations, variants = [], [], []
         for i in range(len(raw_sequence)):
-            if ignore_gaps and raw_sequence[i] == '-':
+            residue = raw_sequence[i]
+            if ignore_gaps and residue == '-':
                 continue
-            sequence.append(raw_sequence[i])
+            for c, count in self.variants[i]:
+                if c == residue:
+                    perc = count / num_seqs * 100
+                    break
+            else:
+                print('\n\nSomething weird happened with the variants')
+            sequence.append((residue, seq_ind, perc))
+            if residue != '-':
+                seq_ind += 1
             variations.append(self.variations[i])
             if num_variants:
                 vnts_norm = self.variants[i][0][1] # Normalized against most frequent character, not total
                 if sequence_name == 'Consensus':
-                    vnts = [(c, freq/vnts_norm) for c, freq in self.variants[i][1:num_variants+1]]
+                    vnts = [(c, count/vnts_norm, count/num_seqs*100) for c, count in self.variants[i][1:num_variants+1]]
                 else:
-                    vnts = [(c, freq/vnts_norm) for c, freq in self.variants[i][:num_variants]]
-                max_variants = max(len(vnts), max_variants)
+                    vnts = [(c, count/vnts_norm, count/num_seqs*100) for c, count in self.variants[i][:num_variants]]
                 variants.append(vnts)
+                max_variants = max(len(vnts), max_variants)
         # Deal with data bounds
         seq_start, seq_end = self.show_range_input.texts
         final_res = first_label_num + len(sequence) - 1
@@ -888,8 +926,8 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
             new_canv_h += (num_segs-1) * segment_spacing
 
         # #  Do drawing
+        self.clear_hover_messages()
         self.draw_canvas.canvas.clear()
-        self.hover_elements = {}
         self.draw_canvas.width = new_canv_w
         self.draw_canvas.height = new_canv_h
         draw_methods = self.draw_methods_factory()
@@ -915,7 +953,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
                 ind_coords, seg_line_coords = [], []
                 for seg_ind in range(seg_end - seg_start):
                     ind = seg_start + seg_ind
-                    residue = sequence[ind]
+                    residue = sequence[ind][0]
                     var_prop = variations[ind]/max_var
                     # Draw residue
                     res_x = seg_left + (res_size[0]+res_spacing)*seg_ind
@@ -926,26 +964,32 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
                         res_clr = colours['residue_variation'][:3] + (1-var_prop,)
                     else:
                         res_clr = None
+                    res_name = residue if residue != '-' else 'Gap prior to '
+                    hover_message = '{}{} ({}%)'.format(res_name, sequence[ind][1], round(sequence[ind][2]))
                     if show_sequence:
                         rect = draw_label((res_x,res_y), residue, size=res_size, font_colour=res_font_clr, box_colour=res_clr)
-                        self.hover_elements[rect] = '{}{}'.format(residue, ind+1)
+                        self.add_hover_message(res_x, res_x+res_size[0], res_y, res_y+res_size[1], hover_message)
                     elif res_clr:
                         rect = draw_rect((res_x,res_y), res_size, res_clr)
-                        self.hover_elements[rect] = '{}{}'.format(residue, ind+1)
+                        self.add_hover_message(res_x, res_x+res_size[0], res_y, res_y+res_size[1], hover_message)
                     # Deal with graphs
                     graph_h = var_prop * graph_height
                     if graph_type == 'bar':
                         draw_rect((res_x,graph_y), (res_size[0],graph_h), colours['graph_line'])
                     elif graph_type == 'line':
-                        if seg_ind == 0 and prev_graph_h != None:
-                            prev_seg_pnt = res_x_mid-res_spacing-res_size[0]/2, graph_y+prev_graph_h
+                        if seg_ind == 0: # First residue of the segment
+                            if prev_graph_h == None: # First segment
+                                prev_graph_y = graph_y + graph_h
+                            else:
+                                prev_graph_y = graph_y + prev_graph_h
+                            prev_seg_pnt = res_x_mid-res_spacing-res_size[0]/2, prev_graph_y
                         seg_line_coords.append((res_x_mid, graph_y+graph_h))
                         prev_graph_h = graph_h
                         # Graph variant residues
                         if variants:
                             vnt = variants[ind]
                             vnt_ind = 0
-                            for c_res, c_prop in vnt:
+                            for c_res, c_prop, c_perc in vnt:
                                 c_res_y = graph_y + vnt_ind*res_size[1]
                                 if sequence_colours == 'properties':
                                     c_res_clr = self.get_residue_colour(c_res) or default_res_bkgrnd
@@ -957,6 +1001,8 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
                                     draw_label((res_x,c_res_y), c_res, size=res_size, font_colour=res_font_clr, box_colour=c_res_clr)
                                 else:
                                     draw_rect((res_x,c_res_y), res_size, c_res_clr)
+                                hover_message = '{} ({}%)'.format(c_res if c_res != '-' else 'Gap', round(c_perc))
+                                self.add_hover_message(res_x, res_x+res_size[0], c_res_y, c_res_y+res_size[1], hover_message)
                                 vnt_ind += 1
                     # Record values for indices
                     res_num = first_label_num + ind
@@ -967,10 +1013,11 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
                 # Deal with segment line graph start/ends
                 if graph_type == 'line':
                     if ind < aln_len - 1:
-                        next_seg_h = variations[ind+1]/max_var * graph_height
-                        next_seg_pnt = res_x+res_size[0]+res_spacing, next_seg_h+graph_y
-                    else:
-                        next_seg_pnt = None
+                        next_pnt_var = variations[ind+1]
+                    else: # For the very last point
+                        next_pnt_var = variations[ind]
+                    next_seg_h = next_pnt_var/max_var * graph_height
+                    next_seg_pnt = res_x+res_size[0]+res_spacing, next_seg_h+graph_y
                     line_coords.append((prev_seg_pnt, next_seg_pnt, seg_line_coords))
                 # Draw indices
                 if show_ticks or show_numbers:
@@ -993,10 +1040,11 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
                 # Draw axes
                 ax_points = [(seg_left+1, graph_y+graph_height), (seg_left+1, graph_y), (seg_right, graph_y)]
                 draw_line(ax_points, width=1.1, colour=res_font_clr)
-            # Draw line graph on whole segment
+            # Draw line graph over whole segment
             if graph_type == 'line':
                 for prev_seg_pnt, next_seg_pnt, seg_line_coords in line_coords:
                     draw_curve(seg_line_coords, width=2.0, colour=colours['graph_line'], continue_from=prev_seg_pnt, continue_to=next_seg_pnt)
+        self.process_hover_messages()
 
 
 class PDBScreen(BaseScreen):
