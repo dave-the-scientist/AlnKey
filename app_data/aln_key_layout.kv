@@ -655,6 +655,7 @@ AlnKeyMain:
     show_meanline_cb: var_meanline_cb.active
     show_numbers_cb: var_nums_cb.active
     show_ticks_cb: var_ticks_cb.active
+    filter_gaps_cb: var_filter_gaps_cb.active
     # Screen layout
     ScreenLayout:
         HeaderGroup:
@@ -708,9 +709,16 @@ AlnKeyMain:
                             value: 'none'
                             group: 'var_colour_group'
                     MinorButton:
-                        text: "Redraw"
+                        text: 'Redraw'
                         on_release:
                             root.draw_graphics()
+                ObjectGroupLayout:
+                    MinorButton:
+                        text: 'Pick sequence'
+                    CheckBoxGroup:
+                        id: var_filter_gaps_cb
+                        label_text: 'Filter gaps:'
+                        active: False
                 MinorButton:
                     text: "Save image"
                     on_release:
@@ -747,7 +755,7 @@ AlnKeyMain:
                         size_hint_x: None
                         width: self.content_width
                         label_text: 'Show\nmean line:'
-                        active: True
+                        active: False
                     CheckBoxGroup:
                         id: var_nums_cb
                         size_hint_x: None

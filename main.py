@@ -802,7 +802,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
             num_variants = 0
         
 
-        ignore_gaps = False #True # Should be set by UI element
+        ignore_gaps = self.filter_gaps_cb # False #True # Should be set by UI element
         # TODO: Allow selection of sequence to display
         sequence_name = 'Consensus'
         #sequence_name = 'L6-M982-M982_Nme'
