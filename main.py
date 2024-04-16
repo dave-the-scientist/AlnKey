@@ -53,6 +53,8 @@ from kivy.graphics.instructions import Callback
 # I want some method to label regions. Loops, lobes, etc. Add button to the main screen. Lets user manually input regions, or load "region file" (look at output of things like loop identification software).
 # not sure if my .ico has multiple sizes; either way look into packaging different images for the different sizes into one .ico
 
+# Could be cool to have a function to generate a sequence motif logo. Let the user select the boundaries, should be easy enough to do.
+
 # I think I want a second draw option for alignments, essentially Figure 2 from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4155614/ looks like it would be a good way to see subtypes.
 #  - Could even make that one interactive; click a line to get the names of all sequences making that transition.
 #  - I really, really like the idea of clustering the Sequence Diversity Diagrams. Just k-medoids(means?), clustering the abstractions (line graphs) themselves. This will point out subtypes in the alignment. Or maybe EM? No reason to expect group sizes to be the same size.
