@@ -11,5 +11,5 @@ This repo is not designed to be cloned for general use. To install, download a p
 - Clone the github files into a new subfolder named Code `git clone https://github.com/dave-the-scientist/AlnKey.git Code`
 - Set it up as virtual environment `python -m venv Code`.
 - cd in and activate venv `Scripts\activate.bat` (Windows)
-- Install dependencies `pip install kivy`, `pip install "pyinstaller==5.6.2"`.
-	- Ideally, the second call should be `pip install --upgrade pyinstaller` but there's a bug preventing execution of kivy programs at least up until v5.13
+- Install dependencies `pip install kivy`, `pip install --upgrade pyinstaller`.
+	- There used to be a bug in pyinstaller preventing execution of kivy programs at least up until v5.13, which required the command to be `pip install "pyinstaller==5.6.2"`. Bug appears to be fixed as of at least v6.8.
