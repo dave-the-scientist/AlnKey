@@ -70,8 +70,7 @@ AlnKeyMain:
         font_size: '20sp'
         text: "Back"
         on_release:
-            app.root.transition.direction = 'right'
-            app.root.current = 'MainScreen'
+            app.root.change_screen('MainScreen')
 <MainButton@Button>:
     pos_hint: {'center_x':0.5, 'top':1}
     size_hint: None, None
@@ -559,8 +558,7 @@ AlnKeyMain:
                         pos_hint: {'center_x':0.5, 'bottom':0}
                         text: "Settings"
                         on_release:
-                            app.root.transition.direction = 'left'
-                            app.root.current = 'OptionScreen'
+                            app.root.change_screen('OptionScreen')
             BoxLayout:
                 size_hint_x: 0.5
                 Widget:
@@ -577,8 +575,7 @@ AlnKeyMain:
                         text: "Graph variation"
                         disabled: root.aln_missing
                         on_release:
-                            app.root.transition.direction = 'left'
-                            app.root.current = 'VariationScreen'
+                            app.root.change_screen('VariationScreen')
                     Widget:
                     MinorButton:
                         text: "Diversity diagram"
@@ -592,8 +589,7 @@ AlnKeyMain:
                         text: "Map onto PDB"
                         disabled: root.aln_missing
                         on_release:
-                            app.root.transition.direction = 'left'
-                            app.root.current = 'PDBScreen'
+                            app.root.change_screen('PDBScreen')
                 Widget:
         BoxLayout:
             size_hint_y: 0.08
@@ -606,7 +602,7 @@ AlnKeyMain:
             Label:
                 font_size: 14
                 color: white
-                text: "\u00A9 David Curran 2023"
+                text: "\u00A9 David Curran 2024"
 # #  End of MainScreen. Associated elements:  # #
 <AlnExportDropDown>:
     DropdownButton:

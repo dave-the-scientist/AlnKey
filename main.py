@@ -279,8 +279,6 @@ class BaseScreen(Screen):
         self.app = App.get_running_app()
         self.screen_size = main_screen_size
         super().__init__(*args, **kwargs)
-    def on_pre_enter(self):
-        Window.size = self.screen_size
     def alignment_loaded(self):
         """Called by the MainScreen whenever a new alignment has been successfully loaded. Overwrite this to implement any sort of desired cache behaviours."""
         pass
@@ -512,6 +510,7 @@ class DrawGraphics:
             colours[cls] = colour_tup
         return colours
 
+
 # # #  Main elements  # # #
 class AlnKeyApp(App):
     def __init__(self, *args, **kwargs):
@@ -520,7 +519,6 @@ class AlnKeyApp(App):
         # self.user_data_dir # cross-platform dir to store persistent app data
         self.config_path_keys = set() # Populated by the Save and Load base classes
         super().__init__(*args, **kwargs)
-        Window.bind(on_resize=self.screen_resize)
     def build(self):
         self.icon = os.path.join('app_data', 'icon_small.png')
         return Builder.load_file(os.path.join('app_data', 'aln_key_layout.kv'))
@@ -538,10 +536,6 @@ class AlnKeyApp(App):
     def on_stop(self):
         # may be called twice if I use app.stop(); a known bug in Kivy.
         self.config.write()
-    def screen_resize(self, window_obj, width, height):
-        # A screen will keep its adjusted size all session
-        if self.root:
-            self.root.current_screen.screen_size = (width, height)
     def validate_config_paths(self):
         # In case the filesystem changes between uses of the app, config gets corrupted, etc
         default_path = os.path.expanduser("~")
@@ -577,6 +571,14 @@ class AlnKeyMain(ScreenManager):
         self.alignment = None # A SeqList once loaded by MainScreen
         self.alignment_lengths = []
         self.alignment_consensus = ''
+    def change_screen(self, new_screen_name):
+        self.current_screen.screen_size = Window.size
+        if new_screen_name == self.main_screen.name:
+            self.transition.direction = 'right'
+        else:
+            self.transition.direction = 'left'
+        Window.size = self.get_screen(new_screen_name).screen_size
+        self.current = new_screen_name
 
 
 # # #  Screen classes  # # #
@@ -589,7 +591,6 @@ class MainScreen(BaseScreen, LoadFiles, SaveFiles):
         self.load_alignment_key = self.path_config_keys[0]
         self.save_alignment_key = self.path_config_keys[1]
         super().__init__(*args, **kwargs)
-        #self.screen_size = main_screen_size
         self.export_dropdown = AlnExportDropDown(self)
     # #  Info display
     def alignment_loaded(self):
@@ -802,7 +803,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
             num_variants = int(self.num_variants_input.text)
         else:
             num_variants = 0
-        
+
 
         ignore_gaps = self.filter_gaps_cb # False #True # Should be set by UI element
         # TODO: Allow selection of sequence to display
