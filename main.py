@@ -173,6 +173,14 @@ class BaseDropDown(DropDown):
         self.container.padding = self.padding # set these settings.
 class AlnExportDropDown(BaseDropDown):
     pass
+class AlnSelectChoice(BaseDropDown):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.choices = []
+    def add_choice(self, text):
+        pass
+    def clear_choices(self):
+        pass
 
 class ObjectGroupLayout(GridLayout):
     def __init__(self, *args, **kwargs):
@@ -686,6 +694,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         self.hover_elements = {}
         default_variation_colours = {'segment_background':'255,255,255,255', 'graph_line':'17,64,67,255', 'mean_line':'150,150,150,255', 'residue_variation':'10,239,255,255', 'residue_default':'182,182,182,255', 'residue_font':'50,50,50,255', 'axis_font':'50,50,50,255'}
         self.register_colour_dict(config_variation_colours_category, default_variation_colours)
+        self.sequence_selector = AlnSelectChoice(self)
         # #  Added in aln_key_layout.kv
         #self.draw_canvas = BoxLayout
         #self.draw_canvas_view = ScrollView

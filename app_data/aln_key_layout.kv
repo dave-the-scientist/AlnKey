@@ -112,12 +112,18 @@ AlnKeyMain:
 <DropdownButton@Button>:
     size_hint_y: None
     height: 40
+
+<AlnSelectChoice>:
+    spacing: 8
+    padding: 10
+
 <ColumnGrid@GridLayout>:
     cols: 1
     size_hint_x: None
     width: 200
     padding: 10, 10, 10, 10
     spacing: 10
+
 <ObjectGroupLayout>:
     cols: 1
     pos_hint: {'center_x':0.5}
@@ -711,6 +717,8 @@ AlnKeyMain:
                 ObjectGroupLayout:
                     MinorButton:
                         text: 'Pick sequence'
+                        on_release:
+                            root.sequence_selector.open(self)
                     CheckBoxGroup:
                         id: var_filter_gaps_cb
                         label_text: 'Filter gaps:'
@@ -791,7 +799,23 @@ AlnKeyMain:
                     InfoLabel:
                         text: root.hover_text
 # #  End of VariationScreen. Associated elements:  # #
-# None so far
+<AlnSelectChoice>:
+    DropdownButton:
+        text: "Consensus"
+        on_release:
+            root.dismiss()
+    DropdownButton:
+        text: "Seq 1"
+        on_release:
+            root.dismiss()
+    DropdownButton:
+        text: "Seq 2"
+        on_release:
+            root.dismiss()
+    DropdownButton:
+        text: "Seq 3"
+        on_release:
+            root.dismiss()
 
 # # #  PDB screen  # # #
 <PDBScreen>:
