@@ -28,6 +28,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.dropdown import DropDown
+from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.image import Image
@@ -52,6 +53,8 @@ from kivy.graphics.instructions import Callback
 # Implement Loading... image on variation screen that gets replaced after variations etc are calculated. It should be refreshed(?) when a new alignment is successfully loaded
 # I want some method to label regions. Loops, lobes, etc. Add button to the main screen. Lets user manually input regions, or load "region file" (look at output of things like loop identification software).
 # not sure if my .ico has multiple sizes; either way look into packaging different images for the different sizes into one .ico
+# Probably do some optimization of the hover message framework. I can probably make the lookup much faster, there must be some data structure that's well suited to checking if a value falls within a selection of ranges.
+#  - This is for get_hover_message()
 
 # Could be cool to have a function to generate a sequence motif logo. Let the user select the boundaries, should be easy enough to do.
 
@@ -174,13 +177,25 @@ class BaseDropDown(DropDown):
 class AlnExportDropDown(BaseDropDown):
     pass
 class AlnSelectChoice(BaseDropDown):
-    def __init__(self, *args, **kwargs):
+    """A DropDown object allowing the user to select one of a number of choices, storing the string value to self.choice. Use the add() function to add a choice to the list, and the clear() function to remove all current choices and reset self.choice back to the default_choice. You can pass a function as on_change, which will be called as fxn(new_choice) when the user selects a choice."""
+    # I want to get a scrollbar working, maybe using a ScrollView?
+    # Should probably try and replace DropDown.container with a RecycleView, as it can handle large number of items.
+    def __init__(self, *args, on_change=None, default_choice='', **kwargs):
+        self.choice = default_choice
+        self.default_choice = default_choice
+        if on_change:
+            self.on_change = on_change
         super().__init__(*args, **kwargs)
-        self.choices = []
-    def add_choice(self, text):
+    def add(self, text):
+        # Should deal with updating the max width if 'text' is longer than the current max string
+        self.add_widget(SelectChoiceEntry(text=text))
+    def clear(self):
+        self.clear_widgets()
+        self.choice = self.default_choice
+    def on_change(self, new_choice):
         pass
-    def clear_choices(self):
-        pass
+class SelectChoiceEntry(Button):
+    pass
 
 class ObjectGroupLayout(GridLayout):
     def __init__(self, *args, **kwargs):
@@ -683,6 +698,7 @@ class MainScreen(BaseScreen, LoadFiles, SaveFiles):
 
 
 class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
+    focused_sequence = StringProperty('Alignment consensus') # The identity of the displayed sequence
     hover_text = StringProperty('') # Label used to display mouseover information
     def __init__(self, *args, **kwargs):
         self.path_config_keys = ['variation_save_image']
@@ -694,7 +710,7 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         self.hover_elements = {}
         default_variation_colours = {'segment_background':'255,255,255,255', 'graph_line':'17,64,67,255', 'mean_line':'150,150,150,255', 'residue_variation':'10,239,255,255', 'residue_default':'182,182,182,255', 'residue_font':'50,50,50,255', 'axis_font':'50,50,50,255'}
         self.register_colour_dict(config_variation_colours_category, default_variation_colours)
-        self.sequence_selector = AlnSelectChoice(self)
+        self.sequence_selector = AlnSelectChoice(self, on_change=self.change_focused_sequence, default_choice=self.focused_sequence)
         # #  Added in aln_key_layout.kv
         #self.draw_canvas = BoxLayout
         #self.draw_canvas_view = ScrollView
@@ -709,26 +725,36 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         #self.show_ticks_cb = Bool
 
         Window.bind(mouse_pos=self.canvas_mouseover) # TODO does this need to go into on_enter? or can multiple widgets be bound at once?
-
+    
     def on_enter(self):
+        if len(self.sequence_selector.container.children) == 0:
+            self.sequence_selector.add(self.sequence_selector.default_choice)
+            self.focused_sequence = self.sequence_selector.default_choice
+            for name in self.manager.alignment.names:
+                self.sequence_selector.add(name)
+
         if not self.variations:
             print('entered')
             self.draw_canvas.canvas.clear()
             self.draw_loading_graphic()
             
             t = threading.Thread(target=self.load_variation_then_draw)
-            # TODO add option to hide gaps. Gives better picture of the protein itself
             #t.daemon = True
             t.start()
             print('check 1')
             
             #Clock.schedule_once(self.load_variation_then_draw, 0) # Have to do this or the graphic doesn't display before the thread locks up
+
     def alignment_loaded(self):
+        # Reset backend objects
         self.variations = []
         self.consensus = ''
         self.variants = []
+        self.sequence_selector.clear()
+        # Reset input objects
         self.first_res_input.reset()
         self.show_range_input.reset()
+        # Reset drawing objects
         self.draw_canvas.canvas.clear()
         self.clear_hover_messages()
         
@@ -740,6 +766,9 @@ class VariationScreen(BaseScreen, SaveFiles, DrawGraphics):
         print('done loading')
         #self.draw_graphics()
         Clock.schedule_once(self.draw_graphics, 0) # Clock calls are performed by the main thread, and only the main thread can draw.
+    
+    def change_focused_sequence(self, name):
+        self.focused_sequence = name
     
     # #  Mouseover methods
     def canvas_mouseover(self, window, pos):

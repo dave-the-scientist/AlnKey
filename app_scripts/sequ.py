@@ -10,6 +10,7 @@ from collections import UserList
 
 # TODO
 # finish the phylip writing methods.
+# I shouldn't rely on the code to check if names_cache exists, and rebuild_cache() if not. Just decorate a centralized getter function to do that.
 # could rename `make_unique()` to something like `filter_redundant()`; decide on some function nomenclature about what `remove_`, `fileter_`, or `make_` mean for function names and keep it standard.
 # remove_shorter() takes quite a long time on 262k sequences, likely because of the `remove()` call. Provide a 'filter_shorter()' method as well, that just returns a new SeqList instead of removing.
 #  - it's probably the _deregister calls that are slow. could maybe have an option to prevent them
