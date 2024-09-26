@@ -595,6 +595,7 @@ class AlnKeyMain(ScreenManager):
         self.alignment_lengths = []
         self.alignment_consensus = ''
     def change_screen(self, new_screen_name):
+        print('\n- changing to', new_screen_name, 'sizes:', Window.size, self.get_screen(new_screen_name).screen_size)
         self.current_screen.screen_size = Window.size
         if new_screen_name == self.main_screen.name:
             self.transition.direction = 'right'
