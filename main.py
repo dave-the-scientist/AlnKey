@@ -61,7 +61,9 @@ from kivy.graphics.instructions import Callback
 # I think I want a second draw option for alignments, essentially Figure 2 from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4155614/ looks like it would be a good way to see subtypes.
 #  - Could even make that one interactive; click a line to get the names of all sequences making that transition.
 #  - I really, really like the idea of clustering the Sequence Diversity Diagrams. Just k-medoids(means?), clustering the abstractions (line graphs) themselves. This will point out subtypes in the alignment. Or maybe EM? No reason to expect group sizes to be the same size.
-# - I may want to include a "gap" category if the existing tool doesn't have one.
+# - Ensure there's a "gap" category.
+# - Existing tool: https://www.ebi.ac.uk/research/goldman/software/alvis/
+# - Related: this tool has a network diagram of sequence alignments which I like (https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0259726)
 
 # build options menu as described https://kivy.org/doc/stable/api-kivy.app.html
 
