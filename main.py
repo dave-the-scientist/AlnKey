@@ -44,14 +44,17 @@ from kivy.graphics.instructions import Callback
 # BUGS
 # draw_loading_graphic(self, dt=None) is messed up. It works great if you load a large aln. But only the first load. The graphic isn't drawn on subsequent loads. Unless you comment out the draw_graphics() call; somehow this makes it all work again. Right now it's using Clock.schedule_once, but I'd rather not. Once fixed, remove the 'dt=None' args from various functions.
 
-# Implement a thread pool for the App. Will probably fix the above bug.
-
+# TODO
+# Implement a thread pool for the App. Will probably fix the loading graphic bug.
+# I want some methods to label regions. One line of graphics that is very general, for lobes, active sites, whatever. Another line specifically for secondary structure. Users can manually input ss boundaries (can then save as dssp file), or load one of the file formats used by DSSP (https://swift.cmbi.umcn.nl/gv/dssp/index.html); that page also shows how to use their API, so I should implement that (user loads PDB structure, sends to web server, waits for response).
+#  - I like the graphics used in SSDraw (https://pmc.ncbi.nlm.nih.gov/articles/PMC10680343/)
+# Reformat the landing page. I want one area (info/button) for an alignment file, a second for a PDB file, a third for secondary structure, fourth for regions, fifth for sequence groups.
+#  - Depending on the files currently loaded, the other screens will become available. Ex only aln loaded, can view, graph quality, but can't map to pdb. If only pdb loaded, can only predict secondary structure. If only pdb + dssp loaded, can View Alignment (where the alignment is just the sequence from the pdb).
 # Give the variation graph a y-axis title, possibly x-axis as well
 # Consider sliding window for calculation of variation. Or perhaps calculation of the mean line. Check a couple real gappy alignments. 
 # Implement ability to select one sequence to display instead of consensus. Searchable + scrollable popup list. The View screen will likely use a version that can incorporate checkboxes. 
 #  - When displaying sequence on Variation, ignore gaps? Option to? 
-# Implement Loading... image on variation screen that gets replaced after variations etc are calculated. It should be refreshed(?) when a new alignment is successfully loaded
-# I want some method to label regions. Loops, lobes, etc. Add button to the main screen. Lets user manually input regions, or load "region file" (look at output of things like loop identification software).
+
 # not sure if my .ico has multiple sizes; either way look into packaging different images for the different sizes into one .ico
 # Probably do some optimization of the hover message framework. I can probably make the lookup much faster, there must be some data structure that's well suited to checking if a value falls within a selection of ranges.
 #  - This is for get_hover_message()
