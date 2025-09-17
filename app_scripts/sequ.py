@@ -16,7 +16,7 @@ from collections import UserList
 #  - it's probably the _deregister calls that are slow. could maybe have an option to prevent them
 # once this is decent, put a copy into a new molecbio.sequ file. eventually i need to replace it.
 # translate, inverse, complements
-# quality, aln_identity
+# quality, aln_identity; probably simpler to merge that module with this one. If i'm trying to avoid needlessly importing numpy (why?), could hold off on the import until calling a relevant method.
 # some tools for quantifying sequence lengths, possibly even printing a basic histogram. should use seq.nongaps for the lengths
 # SeqList methods return the obj, Sequence methods return str(seq). Probably want to standardize them to both return the obj
 
@@ -199,6 +199,7 @@ class SeqList(UserList):
     The manipulation functions return self, allowing them to be chained."""
     def __init__(self, sequences=[], **kwargs):
         super().__init__()
+        # #  Public attributes
         # self.names = [] # Read-only property; list of sequence names in order.
         # self.size = int # Read-only property; sum total of all sequence lengths.
         # self.nongaps = int # Read-only property; sum of all alpha characters in sequences.
@@ -254,10 +255,10 @@ class SeqList(UserList):
         for seq in self.data:
             seq.strip_gaps()
         return self
-    def strip_spaces(self):
+    def strip_whitespace(self):
         """Removes all whitespace characters in the sequences."""
         for seq in self.data:
-            seq.strip_spaces()
+            seq.strip_whitespace()
         return self
     def make_unique(self, return_removed=False):
         """Removes any children with identical sequences, keeping only the first object encountered. If `return_removed` is True, returns a SeqList of the removed Sequences."""
@@ -558,7 +559,7 @@ class Sequence():
         """Removes all gap characters in the sequence."""
         self.seq = self.seq.replace('-','')
         return self.seq
-    def strip_spaces(self):
+    def strip_whitespace(self):
         """Removes all whitespace characters in the sequences."""
         self.seq = ''.join(self.seq.split())
         return self.seq

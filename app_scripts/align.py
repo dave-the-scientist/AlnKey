@@ -45,7 +45,7 @@ def variants(seqs, number=None):
 def identity(seq1, seq2):
     """Does not compute an alignment, and expects that the sequences are already aligned. `seq1` and `seq2` can be Sequence objects or strings. Computes the number of any non-gap characters in agreement divided by the total number of columns that are not only gaps; that is, when both sequences do have a gap at the same position, it does not affect the numerator or denominator of the identity calculation. Returned values are percentages from 0 - 100%."""
     if len(seq1) != len(seq2):
-        raise MolecbioAlignmentLengthError("cannot compute the identity between two sequences of different lengths.")
+        raise MolecbioAlignmentLengthError("cannot compute the identity between two sequences of different lengths. They should be aligned before calling the identity() function.")
     matches, total = 0, 0
     for c1, c2 in zip(seq1, seq2):
         if c1 == '-' == c2:
